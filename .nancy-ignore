@@ -1,0 +1,5 @@
+# These three CVEs are dealing with an outdated ETCD using bad password policies. As we cannot get rid of it, we are
+# ignoring it as of now
+CVE-2020-15114
+CVE-2020-15136
+CVE-2020-15115
