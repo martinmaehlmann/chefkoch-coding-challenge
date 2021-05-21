@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -13,17 +13,36 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "chefkoch-coding-challenge",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "todo",
+	Short: "An application, that manages todos.",
+	Long: `An application, that manages todos.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+This application was created as the result of a coding challenge for chefkoch.de. Its parameters were as follows:
+
+	- We want you to create a REST-service using go (https://golang.org/)
+	- The service shall manage ToDo's
+	- A ToDo consists of an arbitrary list of Subtasks and is structured as follows:
+		{
+			id [mandatory]
+			name [mandatory]
+			description
+			tasks: [
+				{
+					id [mandatory]
+					name [mandatory]
+					description
+				}
+			]
+		}
+
+	- The service shall serve the following endpoints:
+		- GET /todos → Returns a list of all Todos
+		- POST /todos → Expects a Todo (without id) and returns a Todo with id
+		- GET /todos/{id} → Returns a Todo
+		- PUT /todos/{id} → Overwrites an existing Todo
+		- DELETE /todos/{id} → Deletes a Todo
+	- All ToDo's have to be persisted, the means are up to the applicant.
+`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -56,9 +75,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".chefkoch-coding-challenge" (without extension).
+		// Search config in home directory with name ".todo" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".chefkoch-coding-challenge")
+		viper.SetConfigName(".todo")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
