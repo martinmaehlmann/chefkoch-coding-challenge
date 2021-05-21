@@ -28,7 +28,19 @@ https://github.com/sonatype-nexus-community/nancy
 ### Installation
 Manual from their github website
 
-# Cobra / Viper
+# Wire
+Wire is a code generation tool that automates connecting components using dependency injection. Dependencies between 
+components are represented in Wire as function parameters, encouraging explicit initialization instead of global 
+variables. Because Wire operates without runtime state or reflection, code written to be used with Wire is useful even 
+for hand-written initialization.
+
+### Github
+https://github.com/google/wirez
+
+### Installation
+`go get github.com/google/wire/cmd/wire`
+
+# Cobra
 Cobra is a library providing a simple interface to create powerful modern CLI interfaces similar to git & go tools.
 
 Cobra is also an application that will generate your application scaffolding to rapidly develop a Cobra-based 
@@ -38,5 +50,24 @@ application.
 https://github.com/spf13/cobra
 
 ### Installation
-go get -u github.com/spf13/cobra
+`go get -u github.com/spf13/cobra`
 
+# Viper
+Viper is a complete configuration solution for Go applications including 12-Factor apps. It is designed to work within 
+an application, and can handle all types of configuration needs and formats. It supports:
+
+### Github
+https://github.com/spf13/viper
+
+# Gorm
+The fantastic ORM library for Golang, aims to be developer friendly.
+
+### Github
+https://github.com/go-gorm/gorm
+
+# Gin
+Gin is a web framework written in Go (Golang). It features a martini-like API with performance that is up to 40 times 
+faster thanks to httprouter. If you need performance and good productivity, you will love Gin.
+
+### Github
+https://github.com/gin-gonic/gin

@@ -6,10 +6,9 @@ stages:
   - container_build
 
 .defaults:
-  tags:
-    - k8s-runner
   artifacts:
     untracked: true
+  when: manual
 
 get_vendor_dir:
   stage: preparation
@@ -41,33 +40,18 @@ dependency_analysis:
   script:
     - cat go_dependencies.txt | nancy sleuth
 
-sonaqube_analysis:
-  stage: static_analyses
-  extends: .defaults
-  image: sonarsource/sonar-scanner-cli:latest
-  script:
-    - keytool -importcert -alias ROOT_CA -storepass changeit -file $ROOT_CA -trustcacerts -keystore /opt/java/openjdk/lib/security/cacerts --noprompt
-    - keytool -importcert -alias INTERNAL_POLICY_CA -storepass changeit -file $INTERNAL_POLICY_CA -trustcacerts -keystore /opt/java/openjdk/lib/security/cacerts --noprompt
-    - keytool -importcert -alias INTERNAL_SERVER_ISSUING_CA -storepass changeit -file $INTERNAL_SERVER_ISSUING_CA -trustcacerts -keystore /opt/java/openjdk/lib/security/cacerts --noprompt
-    - keytool -importcert -alias SONARQUBE_CRT -storepass changeit -file $SONARQUBE_CRT -trustcacerts -keystore /opt/java/openjdk/lib/security/cacerts --noprompt
-    - sonar-scanner -Dsonar.projectVersion=$CI_COMMIT_SHA -Dsonar.login=$sonarqube_user -Dsonar.password=$sonarqube_pass
-
 go_build:
   stage: code_build
   extends: .defaults
   image: golang
   script:
     - if [ "$CI_COMMIT_TAG" != "" ]; then VERSION_TAG="$CI_COMMIT_TAG"; else VERSION_TAG="$CI_COMMIT_SHORT_SHA"; fi
-    - go build -ldflags="-X main.ApplicationVersion=$VERSION_TAG" -o bin/app ./cmd/cp-provision
+    - go build -ldflags="-X main.ApplicationVersion=$VERSION_TAG" -o bin/app ./cmd/todo
 
-container_build:
+docker_build:
   stage: container_build
   extends: .defaults
   image: gcr.io/kaniko-project/executor:debug
   script:
-    - cat $HARBOR_PUSHPULL > /kaniko/.docker/config.json
-    - cat $INTERNAL_SERVER_ISSUING_CA >> /kaniko/ssl/certs/ca-certificates.crt
-    - cat $INTERNAL_POLICY_CA >> /kaniko/ssl/certs/ca-certificates.crt
-    - cat $ROOT_CA  >> /kaniko/ssl/certs/ca-certificates.crt
     - if [ "$CI_COMMIT_TAG" != "" ]; then DOCKER_TAG="$CI_COMMIT_TAG"; else DOCKER_TAG="$CI_COMMIT_SHORT_SHA"; fi
-    - /kaniko/executor --build-arg http_proxy=http://$PROXY --build-arg https_proxy=http://$PROXY --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/build/Dockerfile --destination registry.cp.ews.eos.lcl/ewc/cp-api-v3/cp-provision:$DOCKER_TAG
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/build/Dockerfile

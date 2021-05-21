@@ -1,3 +1,3 @@
 FROM golang:alpine
-ADD /bin/app /app
+ADD /bin/app /todo
 ENTRYPOINT ["/app"]
