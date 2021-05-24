@@ -2,35 +2,58 @@ package command
 
 import (
 	"fmt"
+	"log"
+
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/config"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/repository"
 
 	"github.com/spf13/cobra"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/wire"
+	"go.uber.org/zap"
 )
 
-// serveCmd represents the serve command
+var automigrate bool
+
+// serveCmd represents the serve command.
+// nolint:gochecknoglobals // global variable needed by cobra
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "serves the gin-gonic server.",
+	Long: `Serves the gin-gonic server.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
-	},
+Reads the configuration from viper. The default configuration file is in under $HOME/.todo`,
+	Run: Serve,
 }
 
+// nolint:gochecknoinits // needed by cobra
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	// Here you will define your flags and configuration settings.
+	serveCmd.Flags().BoolVar(&automigrate, "automigrate", false, "automatically migrate your schema, to keep your schema up to date.")
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
+// Serve serves the gin-gonic server.
+func Serve(_ *cobra.Command, _ []string) {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("could not initialize logger: %v", err))
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	todoRepository := repository.NewTodoRepository(config.NewPostgresConfig(), logger)
+	defer todoRepository.Close()
+	todoRepository.Connect()
+
+	if automigrate {
+		migrateDatabase(todoRepository)
+	}
+
+	ginServer := wire.InitializeServer(todoRepository, logger)
+	ginServer.Run()
+}
+
+func migrateDatabase(todoRepository *repository.TodoRepository) {
+	err := todoRepository.AutoMigrate()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("could not automigrate database: %v", err))
+	}
 }

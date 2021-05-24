@@ -1,16 +1,15 @@
 wire-build:
-	wire ./internal/server
+	./wire_gen.sh
 
 mockgen:
 	./mockgen.sh
 
 generate-all: wire-build mockgen
 
-build-local-server: generate-all
-	go build -ldflags="-X main.ApplicationVersion=local" -o bin/app ./cmd/cp-provision
+build: generate-all
+	docker build . -f build/Dockerfile -t todo:latest
 
 run-server-with-nats: wire-build
-	docker-compose up -d
 	go run ./cmd/cp-provision serve
 
 run-server: wire-build

@@ -2,16 +2,19 @@ package command
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
+// nolint:gochecknoglobals // global variable needed by cobra
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands.
+// nolint:gochecknoglobals // global variable needed by cobra
 var rootCmd = &cobra.Command{
 	Use:   "todo",
 	Short: "An application, that manages todos.",
@@ -19,29 +22,29 @@ var rootCmd = &cobra.Command{
 
 This application was created as the result of a coding challenge for chefkoch.de. Its parameters were as follows:
 
-	- We want you to create a REST-service using go (https://golang.org/)
-	- The service shall manage ToDo's
-	- A ToDo consists of an arbitrary list of Subtasks and is structured as follows:
-		{
-			id [mandatory]
-			name [mandatory]
-			description
-			tasks: [
-				{
-					id [mandatory]
-					name [mandatory]
-					description
-				}
-			]
-		}
+- We want you to create a REST-service using go (https://golang.org/)
+- The service shall manage ToDo's
+- A ToDo consists of an arbitrary list of Subtasks and is structured as follows:
+	{
+		id [mandatory]
+		name [mandatory]
+		description
+		tasks: [
+			{
+				id [mandatory]
+				name [mandatory]
+				description
+			}
+		]
+	}
 
-	- The service shall serve the following endpoints:
-		- GET /todos → Returns a list of all Todos
-		- POST /todos → Expects a Todo (without id) and returns a Todo with id
-		- GET /todos/{id} → Returns a Todo
-		- PUT /todos/{id} → Overwrites an existing Todo
-		- DELETE /todos/{id} → Deletes a Todo
-	- All ToDo's have to be persisted, the means are up to the applicant.
+- The service shall serve the following endpoints:
+	- GET /todos → Returns a list of all Todos
+	- POST /todos → Expects a Todo (without id) and returns a Todo with id
+	- GET /todos/{id} → Returns a Todo
+	- PUT /todos/{id} → Overwrites an existing Todo
+	- DELETE /todos/{id} → Deletes a Todo
+- All ToDo's have to be persisted, the means are up to the applicant.
 `,
 }
 
@@ -51,6 +54,7 @@ func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }
 
+// nolint:gochecknoinits // needed by cobra
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -58,7 +62,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.chefkoch-coding-challenge.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.todo.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -78,6 +82,9 @@ func initConfig() {
 		// Search config in home directory with name ".todo" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".todo")
+
+		// Match environment variables with the prefix 'TODO' to config variables
+		viper.SetEnvPrefix("TODO")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
