@@ -53,7 +53,7 @@ func Serve(_ *cobra.Command, _ []string) {
 	ginServer.Run()
 }
 
-func migrateDatabase(todoRepository *repository.TodoRepository) {
+func migrateDatabase(todoRepository repository.TodoRepository) {
 	err := todoRepository.AutoMigrate()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("could not automigrate database: %v", err))

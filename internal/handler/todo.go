@@ -22,7 +22,7 @@ type TodoHandler interface {
 
 type todoHandler struct {
 	logger     *zap.Logger
-	repository *repository.TodoRepository
+	repository repository.TodoRepository
 }
 
 // FindAll returns all available Todos, or an empty slice, if none are available.
@@ -118,7 +118,7 @@ func unmarshalTodo(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
 }
 
 // NewTodoHandler returns a new TodoHandler.
-func NewTodoHandler(repository *repository.TodoRepository, logger *zap.Logger) TodoHandler {
+func NewTodoHandler(repository repository.TodoRepository, logger *zap.Logger) TodoHandler {
 	return &todoHandler{
 		logger:     logger,
 		repository: repository,

@@ -164,8 +164,8 @@ func TestTodoRepository_Update(t *testing.T) {
 	assert.True(t, todoEqualsWithoutTimeFields(t, &updatedTodo, foundTodo))
 }
 
-// newSQLliteTodoRepository returns a new TodoRepository with an sqllite db as the backend.
-func newSQLliteTodoRepository(t *testing.T, ctrl *gomock.Controller) (dbFile *os.File, todoRepository *TodoRepository) {
+// newSQLliteTodoRepository returns a new todoRepository with an sqllite db as the backend.
+func newSQLliteTodoRepository(t *testing.T, ctrl *gomock.Controller) (dbFile *os.File, repository *todoRepository) {
 	t.Helper()
 
 	tempDir := os.TempDir()
@@ -181,14 +181,19 @@ func newSQLliteTodoRepository(t *testing.T, ctrl *gomock.Controller) (dbFile *os
 	logger, err := zap.NewProduction()
 	assert.NoError(t, err)
 
-	todoRepository = NewTodoRepository(mockDialector, logger)
-	todoRepository.Connect()
+	repository = &todoRepository{
+		logger: logger,
+		config: mockDialector,
+		db:     nil,
+	}
 
-	return sqlLiteDatabaseFile, todoRepository
+	repository.Connect()
+
+	return sqlLiteDatabaseFile, repository
 }
 
 // cleanup cleans up all the created files during the test.
-func cleanup(t *testing.T, dbFile *os.File, ctrl *gomock.Controller, repository *TodoRepository) {
+func cleanup(t *testing.T, dbFile *os.File, ctrl *gomock.Controller, repository *todoRepository) {
 	t.Helper()
 	repository.Close()
 

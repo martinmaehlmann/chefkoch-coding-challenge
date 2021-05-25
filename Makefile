@@ -6,7 +6,7 @@ mockgen:
 
 generate-all: wire-build mockgen
 
-build: generate-all lint test
+build: generate-all lint test dependency-check
 	docker build . -f build/Dockerfile -t todo:latest
 
 run: build
@@ -14,6 +14,10 @@ run: build
 
 lint:   ## run go lint on the source files
 	golangci-lint run -v
+
+dependency-check:
+	go list -m -json -mod=readonly all > go_dependencies.txt
+	cat go_dependencies.txt | nancy sleuth
 
 test:
 	go test --coverprofile=coverage.out $(go list ./... | grep -v mock)  --race ./...
