@@ -1,6 +1,8 @@
 package todo
 
 import (
+	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -124,4 +126,16 @@ func TestTodo_Valid(t1 *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTodo_PrettyString(t *testing.T) {
+	todo := &Todo{}
+
+	marschalIdent, err := json.MarshalIndent(todo, "", "  ")
+	assert.NoError(t, err)
+
+	prettyString, err := todo.PrettyString("  ")
+	assert.NoError(t, err)
+
+	assert.Equal(t, string(marschalIdent), prettyString)
 }

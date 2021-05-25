@@ -17,7 +17,7 @@ type GinConfig struct {
 
 // PrettyString returns a pretty formatted JSON representation of the struct.
 func (g *GinConfig) PrettyString(indentation string) (string, error) {
-	jsonString, err := json.MarshalIndent(g, "ginConfig", indentation)
+	jsonString, err := json.MarshalIndent(g, "", indentation)
 	if err != nil {
 		return "", err
 	}

@@ -45,7 +45,7 @@ func (p *PostgresConfig) Dialector() gorm.Dialector {
 
 // PrettyString returns a pretty formatted JSON representation of the struct.
 func (p *PostgresConfig) PrettyString(indentation string) (string, error) {
-	jsonString, err := json.MarshalIndent(p, "postgresConfig", indentation)
+	jsonString, err := json.MarshalIndent(p, "", indentation)
 	if err != nil {
 		return "", err
 	}
