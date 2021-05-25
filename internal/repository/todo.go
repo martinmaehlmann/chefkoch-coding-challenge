@@ -8,26 +8,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type TodoRepository interface {
-	Connect()
-	AutoMigrate() error
-	FindAll() []*todo.Todo
-	Find(id uint) *todo.Todo
-	Update(toDo *todo.Todo) *todo.Todo
-	Create(toDo *todo.Todo) *todo.Todo
-	Delete(id uint) int64
-	Close()
-}
-
-// todoRepository handles the operation of the Todo repository.
-type todoRepository struct {
+// TodoRepository handles the operation of the Todo repository.
+type TodoRepository struct {
 	logger *zap.Logger
 	config config.Dialector
 	db     *gorm.DB
 }
 
 // Connect connects to the database or fails with a fatal error.
-func (t *todoRepository) Connect() {
+func (t *TodoRepository) Connect() {
 	db, err := gorm.Open(t.config.Dialector(), &gorm.Config{})
 	if err != nil {
 		t.logger.Fatal("could not open connection to database")
@@ -37,9 +26,9 @@ func (t *todoRepository) Connect() {
 }
 
 // AutoMigrate Automatically migrate your schema, to keep your schema up to date.
-// NOTE: AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes. It will change
+// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes. It will change
 // existing column’s type if its size, precision, nullable changed. It WON’T delete unused columns to protect your data.
-func (t *todoRepository) AutoMigrate() error {
+func (t *TodoRepository) AutoMigrate() error {
 	err := t.db.AutoMigrate(&todo.Todo{})
 	if err != nil {
 		return err
@@ -54,7 +43,7 @@ func (t *todoRepository) AutoMigrate() error {
 }
 
 // FindAll returns all found Todos.
-func (t *todoRepository) FindAll() []*todo.Todo {
+func (t *TodoRepository) FindAll() []*todo.Todo {
 	todos := make([]*todo.Todo, 0)
 
 	t.db.Preload(clause.Associations).Find(&todos)
@@ -63,7 +52,7 @@ func (t *todoRepository) FindAll() []*todo.Todo {
 }
 
 // Find returns a Todo by id, nil if none were found.
-func (t *todoRepository) Find(id uint) *todo.Todo {
+func (t *TodoRepository) Find(id uint) *todo.Todo {
 	var toDo *todo.Todo
 
 	if err := t.db.Preload(clause.Associations).Find(&toDo, id).Error; err != nil {
@@ -75,7 +64,7 @@ func (t *todoRepository) Find(id uint) *todo.Todo {
 
 // Update updates an existing entry and returns the updated value, if it exists.
 // If no entry exists, nil is returned.
-func (t *todoRepository) Update(toDo *todo.Todo) *todo.Todo {
+func (t *TodoRepository) Update(toDo *todo.Todo) *todo.Todo {
 	if foundTodo := t.Find(toDo.ID); foundTodo != nil {
 		t.db.Save(toDo)
 
@@ -86,22 +75,22 @@ func (t *todoRepository) Update(toDo *todo.Todo) *todo.Todo {
 }
 
 // Create creates the given entry with a new ID and returns the new entry.
-func (t *todoRepository) Create(toDo *todo.Todo) *todo.Todo {
+func (t *TodoRepository) Create(toDo *todo.Todo) *todo.Todo {
 	t.db.Create(toDo)
 
 	return toDo
 }
 
 // Delete deletes the specified Todo and returns the rows affected.
-func (t *todoRepository) Delete(id uint) int64 {
+func (t *TodoRepository) Delete(id uint) int64 {
 	// the ID needs to be set here, otherwise the deletion hook will not know about the id
 	result := t.db.Delete(&todo.Todo{ID: id})
 
 	return result.RowsAffected
 }
 
-// Close closes the connection to the database
-func (t *todoRepository) Close() {
+// Close closes the connection to the database.
+func (t *TodoRepository) Close() {
 	db, err := t.db.DB()
 	if err != nil {
 		t.logger.Fatal("could not get database from repository")
@@ -113,9 +102,9 @@ func (t *todoRepository) Close() {
 	}
 }
 
-// NewTodoRepository initializes a new todoRepository.
-func NewTodoRepository(config config.Dialector, logger *zap.Logger) TodoRepository {
-	return &todoRepository{
+// NewTodoRepository initializes a new TodoRepository.
+func NewTodoRepository(config config.Dialector, logger *zap.Logger) *TodoRepository {
+	return &TodoRepository{
 		logger: logger,
 		config: config,
 	}

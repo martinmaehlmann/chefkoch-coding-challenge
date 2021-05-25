@@ -22,7 +22,7 @@ func InitializeConfig(logger *zap.Logger) *config.Registry {
 	return registry
 }
 
-func InitializeServer(todoRepository repository.TodoRepository, logger *zap.Logger) *server.Server {
+func InitializeServer(todoRepository *repository.TodoRepository, logger *zap.Logger) *server.Server {
 	ginConfig := config.NewGinConfig()
 	postgresConfig := config.NewPostgresConfig()
 	registry := config.NewRegistry(ginConfig, postgresConfig, logger)

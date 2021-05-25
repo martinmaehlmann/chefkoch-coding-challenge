@@ -2,8 +2,9 @@ package todo
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTask_Valid(t1 *testing.T) {
@@ -13,6 +14,7 @@ func TestTask_Valid(t1 *testing.T) {
 		Description string
 		TodoID      int
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -39,6 +41,7 @@ func TestTask_Valid(t1 *testing.T) {
 			want: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
 			t := &Task{

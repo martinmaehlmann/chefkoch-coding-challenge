@@ -2,17 +2,20 @@ package todo
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
+// nolint:funlen // only one line too long
 func TestTodo_Valid(t1 *testing.T) {
 	type fields struct {
 		ID          uint
 		Name        string
 		Description string
-		Tasks       []Task
+		Tasks       []*Task
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -24,7 +27,7 @@ func TestTodo_Valid(t1 *testing.T) {
 				ID:          1,
 				Name:        "test",
 				Description: "test",
-				Tasks: []Task{
+				Tasks: []*Task{
 					{
 						ID:          1,
 						Name:        "test",
@@ -41,7 +44,7 @@ func TestTodo_Valid(t1 *testing.T) {
 				ID:          1,
 				Name:        "test",
 				Description: "test",
-				Tasks:       []Task{},
+				Tasks:       []*Task{},
 			},
 			want: true,
 		},
@@ -51,7 +54,7 @@ func TestTodo_Valid(t1 *testing.T) {
 				ID:          1,
 				Name:        "",
 				Description: "test",
-				Tasks: []Task{
+				Tasks: []*Task{
 					{
 						ID:          1,
 						Name:        "test",
@@ -68,7 +71,7 @@ func TestTodo_Valid(t1 *testing.T) {
 				ID:          1,
 				Name:        "test",
 				Description: "test",
-				Tasks: []Task{
+				Tasks: []*Task{
 					{
 						ID:          1,
 						Name:        "",
@@ -85,7 +88,7 @@ func TestTodo_Valid(t1 *testing.T) {
 				ID:          1,
 				Name:        "test",
 				Description: "test",
-				Tasks: []Task{
+				Tasks: []*Task{
 					{
 						ID:          1,
 						Name:        "test",
@@ -113,6 +116,7 @@ func TestTodo_Valid(t1 *testing.T) {
 			want: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
 			t := &Todo{

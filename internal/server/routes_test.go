@@ -4,31 +4,34 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/config"
-	handler_mock "gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/handler/mock"
-	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/todo"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/config"
+	handler_mock "gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/handler/mock"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/todo"
+	"go.uber.org/zap"
 )
 
 func TestServer_createTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	requestBodyData, err := json.Marshal(defaultTestReturnTodo())
 	assert.NoError(t, err)
 
 	handlerMock.EXPECT().Create(gomock.Eq(requestBodyData)).Return(defaultTestReturnTodo(), nil)
 
+	// nolint:bodyclose // is closed in cleanup
 	response, err := http.Post(fmt.Sprintf("%s/todos", ts.URL), "application/json", bytes.NewBuffer(requestBodyData))
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
@@ -43,7 +46,6 @@ func TestServer_createTodo(t *testing.T) {
 
 func TestServer_createTodoInvalidTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	invalidTodo := defaultTestReturnTodo()
 	invalidTodo.Name = ""
@@ -53,8 +55,11 @@ func TestServer_createTodoInvalidTodo(t *testing.T) {
 
 	handlerMock.EXPECT().Create(gomock.Eq(requestBodyData)).Return(nil, todo.NewInvalidTodo(invalidTodo))
 
+	// nolint:bodyclose // is closed in cleanup
 	response, err := http.Post(fmt.Sprintf("%s/todos", ts.URL), "application/json", bytes.NewBuffer(requestBodyData))
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -62,13 +67,13 @@ func TestServer_createTodoInvalidTodo(t *testing.T) {
 	assert.NoError(t, err)
 
 	message, err := json.Marshal(fmt.Sprintf("todo %v is not valid", invalidTodo))
+	assert.NoError(t, err)
 
 	assert.Equal(t, message, bodyData)
 }
 
 func TestServer_deleteTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	handlerMock.EXPECT().Delete(gomock.Eq("1")).Return(nil)
 
@@ -81,8 +86,12 @@ func TestServer_deleteTodo(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
@@ -90,13 +99,13 @@ func TestServer_deleteTodo(t *testing.T) {
 	assert.NoError(t, err)
 
 	message, err := json.Marshal(fmt.Sprintf("deleted todo with id %s", "1"))
+	assert.NoError(t, err)
 
 	assert.Equal(t, message, bodyData)
 }
 
 func TestServer_deleteTodoInvalidID(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	handlerMock.EXPECT().Delete(gomock.Eq("-1")).Return(todo.NewTodoInvalidIDError("-1"))
 
@@ -109,8 +118,12 @@ func TestServer_deleteTodoInvalidID(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -125,10 +138,11 @@ func TestServer_deleteTodoInvalidID(t *testing.T) {
 
 func TestServer_findAllTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
+	defer cleanup(t, ctrl, ts, nil)
 
 	handlerMock.EXPECT().FindAll().Return([]*todo.Todo{defaultTestReturnTodo()})
 
+	// nolint:bodyclose // body is closed in cleanup
 	response, err := http.Get(fmt.Sprintf("%s/todos", ts.URL))
 	assert.NoError(t, err)
 
@@ -145,12 +159,14 @@ func TestServer_findAllTodo(t *testing.T) {
 
 func TestServer_findTodoNoError(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	handlerMock.EXPECT().Find(gomock.Eq("1")).Return(defaultTestReturnTodo(), nil)
 
+	// nolint:bodyclose // body is closed in cleanup
 	response, err := http.Get(fmt.Sprintf("%s/todos/%s", ts.URL, "1"))
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
@@ -160,18 +176,21 @@ func TestServer_findTodoNoError(t *testing.T) {
 	var toDo *todo.Todo
 	err = json.Unmarshal(bodyData, &toDo)
 	assert.NoError(t, err)
+
 	expected := defaultTestReturnTodo()
 	assert.Equal(t, expected, toDo)
 }
 
 func TestServer_findTodoInvalidID(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	handlerMock.EXPECT().Find(gomock.Eq("-1")).Return(nil, todo.NewTodoInvalidIDError("-1"))
 
+	// nolint:bodyclose // body is closed in cleanup
 	response, err := http.Get(fmt.Sprintf("%s/todos/%s", ts.URL, "-1"))
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -186,7 +205,6 @@ func TestServer_findTodoInvalidID(t *testing.T) {
 
 func TestServer_updateTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	// initialize http client
 	client := &http.Client{}
@@ -202,8 +220,12 @@ func TestServer_updateTodo(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
@@ -213,13 +235,13 @@ func TestServer_updateTodo(t *testing.T) {
 	var toDo *todo.Todo
 	err = json.Unmarshal(bodyData, &toDo)
 	assert.NoError(t, err)
+
 	expected := defaultTestReturnTodo()
 	assert.Equal(t, expected, toDo)
 }
 
 func TestServer_updateTodoInvalidID(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	// initialize http client
 	client := &http.Client{}
@@ -235,8 +257,12 @@ func TestServer_updateTodoInvalidID(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -248,7 +274,6 @@ func TestServer_updateTodoInvalidID(t *testing.T) {
 
 func TestServer_updateTodoMalformedBody(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	// initialize http client
 	client := &http.Client{}
@@ -257,7 +282,8 @@ func TestServer_updateTodoMalformedBody(t *testing.T) {
 	assert.NoError(t, err)
 
 	handlerMock.EXPECT().Update(gomock.Eq(requestBodyData), gomock.Eq("1")).Return(
-		nil, todo.NewTodoHandlerError(fmt.Sprintf("body data was malformed %s", string(requestBodyData)), http.StatusBadRequest))
+		nil, todo.NewTodoHandlerError(
+			fmt.Sprintf("body data was malformed %s", string(requestBodyData)), http.StatusBadRequest))
 
 	url := fmt.Sprintf("%s/todos/%d", ts.URL, 1)
 
@@ -265,8 +291,12 @@ func TestServer_updateTodoMalformedBody(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -281,7 +311,6 @@ func TestServer_updateTodoMalformedBody(t *testing.T) {
 
 func TestServer_updateTodoInvalidTodo(t *testing.T) {
 	ctrl, ts, handlerMock := newTestServer(t)
-	defer cleanup(ctrl, ts)
 
 	// initialize http client
 	client := &http.Client{}
@@ -300,8 +329,12 @@ func TestServer_updateTodoInvalidTodo(t *testing.T) {
 	assert.NoError(t, err)
 
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// nolint:bodyclose // is closed in cleanup
 	response, err := client.Do(request)
 	assert.NoError(t, err)
+
+	defer cleanup(t, ctrl, ts, response)
 
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
@@ -315,6 +348,7 @@ func TestServer_updateTodoInvalidTodo(t *testing.T) {
 }
 
 func newTestServer(t *testing.T) (*gomock.Controller, *httptest.Server, *handler_mock.MockTodoHandler) {
+	t.Helper()
 	ctrl := gomock.NewController(t)
 	handlerMock := handler_mock.NewMockTodoHandler(ctrl)
 	logger, _ := zap.NewProduction()
@@ -326,7 +360,14 @@ func newTestServer(t *testing.T) (*gomock.Controller, *httptest.Server, *handler
 	return ctrl, ts, handlerMock
 }
 
-func cleanup(ctrl *gomock.Controller, ts *httptest.Server) {
+func cleanup(t *testing.T, ctrl *gomock.Controller, ts *httptest.Server, response *http.Response) {
+	t.Helper()
+
+	if response != nil {
+		err := response.Body.Close()
+		assert.NoError(t, err)
+	}
+
 	ts.Close()
 	ctrl.Finish()
 }
@@ -334,7 +375,7 @@ func cleanup(ctrl *gomock.Controller, ts *httptest.Server) {
 func randomPort() int {
 	rand.Seed(time.Now().Unix())
 
-	//Generate a random number x where x is in range 5<=x<=20
+	// Generate a random number x where x is in range 5<=x<=20
 	rangeLower := 8000
 	rangeUpper := 8999
 
@@ -342,21 +383,20 @@ func randomPort() int {
 }
 
 func defaultTestReturnTodo() *todo.Todo {
-	tasks := make([]todo.Task, 2)
-	tasks[0] = todo.Task{
-		ID:          0,
+	tasks := make([]*todo.Task, 2)
+	tasks[0] = &todo.Task{
+		ID:          1,
 		Name:        "test1",
 		Description: "test1",
-		TodoID:      0,
 	}
-	tasks[1] = todo.Task{
-		ID:          0,
+	tasks[1] = &todo.Task{
+		ID:          2,
 		Name:        "test2",
 		Description: "test2",
-		TodoID:      0,
 	}
+
 	return &todo.Todo{
-		ID:          0,
+		ID:          1,
 		Name:        "test",
 		Description: "test",
 		Tasks:       tasks,

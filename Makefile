@@ -6,14 +6,15 @@ mockgen:
 
 generate-all: wire-build mockgen
 
-build: generate-all
+build: generate-all lint test
 	docker build . -f build/Dockerfile -t todo:latest
 
-run-server-with-nats: wire-build
-	go run ./cmd/cp-provision serve
-
-run-server: wire-build
-	go run ./cmd/cp-provision serve
+run: build
+	docker-compose -f docker-compose/docker-compose.yml up
 
 lint:   ## run go lint on the source files
 	golangci-lint run -v
+
+test:
+	go test --coverprofile=coverage.out $(go list ./... | grep -v mock)  --race ./...
+	go tool cover -func=coverage.out

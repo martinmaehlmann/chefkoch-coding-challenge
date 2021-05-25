@@ -22,7 +22,7 @@ type TodoHandler interface {
 
 type todoHandler struct {
 	logger     *zap.Logger
-	repository repository.TodoRepository
+	repository *repository.TodoRepository
 }
 
 // FindAll returns all available Todos, or an empty slice, if none are available.
@@ -110,14 +110,15 @@ func unmarshalTodo(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
 
 	err := json.Unmarshal(bodyData, &toDO)
 	if err != nil {
-		return nil, todo.NewTodoHandlerError(fmt.Sprintf("body data was malformed %s", string(bodyData)), http.StatusBadRequest)
+		return nil, todo.NewTodoHandlerError(
+			fmt.Sprintf("body data was malformed %s", string(bodyData)), http.StatusBadRequest)
 	}
 
 	return toDO, nil
 }
 
 // NewTodoHandler returns a new TodoHandler.
-func NewTodoHandler(repository repository.TodoRepository, logger *zap.Logger) TodoHandler {
+func NewTodoHandler(repository *repository.TodoRepository, logger *zap.Logger) TodoHandler {
 	return &todoHandler{
 		logger:     logger,
 		repository: repository,

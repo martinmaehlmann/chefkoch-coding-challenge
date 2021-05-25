@@ -2,13 +2,15 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRegistry(t *testing.T) {
 	setGinViperValues()
 	setPostgresViperValues()
+
 	defer ginViperCleanup()
 
 	actual := NewRegistry(NewGinConfig(), NewPostgresConfig(), nil)
@@ -33,6 +35,7 @@ func TestNewRegistry(t *testing.T) {
 func TestRegistry_PrettyString(t *testing.T) {
 	setGinViperValues()
 	setPostgresViperValues()
+
 	defer ginViperCleanup()
 
 	registry := NewRegistry(NewGinConfig(), NewPostgresConfig(), nil)

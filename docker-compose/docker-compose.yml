@@ -5,8 +5,6 @@ services:
     env_file:
       - postgres.env
     ports:
-      - "5432:5432"
-    expose:
       - 5432
   todo:
     image: todo
@@ -14,4 +12,8 @@ services:
       - todo.env
     command: serve --automigrate
     ports:
+      - "8080:8080"
+    expose:
       - 8080
+    links:
+      - postgres

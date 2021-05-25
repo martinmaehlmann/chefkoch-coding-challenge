@@ -491,7 +491,6 @@ linters:
     - exhaustive
     - exhaustivestruct
     - exportloopref
-    #- forbidigo //no use case so far
     - forcetypeassert
     - funlen
     - gochecknoglobals
@@ -502,12 +501,10 @@ linters:
     - gocyclo
     - godot
     - godox
-    #- goerr113 #//find out why reduces memory allocation and ensure that you can compare errors //ignore for now
     - gofmt
     - gofumpt
     - goheader
-    - goimports
-    - golint #//enable and fix
+    - golint
     - gomnd
     - gomodguard
     - goprintffuncname
@@ -521,25 +518,29 @@ linters:
     - nestif
     - nilerr
     - nlreturn
-    - noctx
     - nolintlint
-    #- paralleltest #//faster tests not needed so far //not needed for now
     - prealloc
     - predeclared
     - rowserrcheck
     - sqlclosecheck
-    #- testpackage //to make sure you test only your interfaces. for internal test create a file_internal_test.go //not needed so far
     - thelper
     - tparallel
     - unconvert
     - unparam
     - wastedassign
     - whitespace
-    #- wrapcheck #//used to ensure that the error is formatted and not bare //not needed for now
     - wsl
 
   disable:
     - maligned
+    - noctx
+    - paralleltest
+    - testpackage
+    - wrapcheck
+    - goimports
+    - goerr113
+    - forbidigo
+    - scopelint
 
   disable-all: false
   presets:

@@ -16,7 +16,7 @@ func InitializeConfig(logger *zap.Logger) *config.Registry {
 	return &config.Registry{}
 }
 
-func InitializeServer(todoRepository repository.TodoRepository, logger *zap.Logger) *server.Server {
+func InitializeServer(todoRepository *repository.TodoRepository, logger *zap.Logger) *server.Server {
 	wire.Build(server.NewServer, handler.NewTodoHandler, config.NewPostgresConfig, config.NewRegistry, config.NewGinConfig)
 	return &server.Server{}
 }

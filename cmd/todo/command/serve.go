@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// nolint:gochecknoglobals // cobra syntax
 var automigrate bool
 
 // serveCmd represents the serve command.
@@ -29,7 +30,8 @@ Reads the configuration from viper. The default configuration file is in under $
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	serveCmd.Flags().BoolVar(&automigrate, "automigrate", false, "automatically migrate your schema, to keep your schema up to date.")
+	serveCmd.Flags().BoolVar(&automigrate, "automigrate", false,
+		"automatically migrate your schema, to keep your schema up to date.")
 }
 
 // Serve serves the gin-gonic server.
@@ -51,7 +53,7 @@ func Serve(_ *cobra.Command, _ []string) {
 	ginServer.Run()
 }
 
-func migrateDatabase(todoRepository repository.TodoRepository) {
+func migrateDatabase(todoRepository *repository.TodoRepository) {
 	err := todoRepository.AutoMigrate()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("could not automigrate database: %v", err))

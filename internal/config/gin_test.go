@@ -2,13 +2,15 @@ package config
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGinConfig_PrettyString(t *testing.T) {
 	setGinViperValues()
+
 	defer ginViperCleanup()
 
 	ginConfig := NewGinConfig()
@@ -24,6 +26,7 @@ func TestGinConfig_PrettyString(t *testing.T) {
 
 func TestNewGinConfig(t *testing.T) {
 	setGinViperValues()
+
 	defer ginViperCleanup()
 
 	actual := &GinConfig{Port: 8080}

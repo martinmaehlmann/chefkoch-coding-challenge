@@ -25,8 +25,8 @@ func NewTodoHandlerError(message string, httpCode int) *HandlerError {
 }
 
 // NewTodoInvalidIDError returns an invalid id error
-// Error Message: "%s is not a valid id. IDs are postive integers"
-// HTTPCode: http.StatusBadRequest
+// Error Message: "%s is not a valid id. IDs are positive integers"
+// HTTPCode: http.StatusBadRequest.
 func NewTodoInvalidIDError(id string) *HandlerError {
 	return &HandlerError{
 		Message:  fmt.Sprintf("%s is not a valid id. IDs are positive integers", id),
@@ -36,7 +36,7 @@ func NewTodoInvalidIDError(id string) *HandlerError {
 
 // NewInvalidTodo returns an invalid todo error
 // Error Message: "todo %v is not valid""
-// HTTPCode: http.StatusBadRequest
+// HTTPCode: http.StatusBadRequest.
 func NewInvalidTodo(toDo *Todo) *HandlerError {
 	return &HandlerError{
 		Message:  fmt.Sprintf("todo %v is not valid", toDo),

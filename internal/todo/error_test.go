@@ -11,6 +11,7 @@ func TestNewInvalidTodo(t *testing.T) {
 	type args struct {
 		toDo Todo
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -25,6 +26,7 @@ func TestNewInvalidTodo(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewInvalidTodo(&tt.args.toDo); !reflect.DeepEqual(got, tt.want) {
@@ -39,6 +41,7 @@ func TestNewTodoHandlerError(t *testing.T) {
 		message  string
 		httpCode int
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -56,6 +59,7 @@ func TestNewTodoHandlerError(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewTodoHandlerError(tt.args.message, tt.args.httpCode); !reflect.DeepEqual(got, tt.want) {
@@ -69,6 +73,7 @@ func TestNewTodoInvalidIDError(t *testing.T) {
 	type args struct {
 		id string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -83,6 +88,7 @@ func TestNewTodoInvalidIDError(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewTodoInvalidIDError(tt.args.id); !reflect.DeepEqual(got, tt.want) {

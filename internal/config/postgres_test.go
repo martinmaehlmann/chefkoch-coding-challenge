@@ -2,10 +2,11 @@ package config
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
-	"testing"
 )
 
 func TestNewPostgresConfig(t *testing.T) {
