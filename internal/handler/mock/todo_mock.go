@@ -93,16 +93,16 @@ func (mr *MockTodoHandlerMockRecorder) FindAll() *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockTodoHandler) Update(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
+func (m *MockTodoHandler) Update(bodyData []byte, id string) (*todo.Todo, *todo.HandlerError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", bodyData)
+	ret := m.ctrl.Call(m, "Update", bodyData, id)
 	ret0, _ := ret[0].(*todo.Todo)
 	ret1, _ := ret[1].(*todo.HandlerError)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockTodoHandlerMockRecorder) Update(bodyData interface{}) *gomock.Call {
+func (mr *MockTodoHandlerMockRecorder) Update(bodyData, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoHandler)(nil).Update), bodyData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoHandler)(nil).Update), bodyData, id)
 }

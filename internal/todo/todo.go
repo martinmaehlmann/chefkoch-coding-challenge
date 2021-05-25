@@ -7,7 +7,7 @@ import (
 
 // Todo this struct represents a todo item.
 type Todo struct {
-	gorm.Model
+	ID          uint   `json:"id" gorm:"primaryKey,autoIncrement"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Tasks       []Task `json:"tasks" gorm:"foreignKey:TodoID"`

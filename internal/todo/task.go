@@ -2,12 +2,11 @@ package todo
 
 import (
 	"encoding/json"
-	"gorm.io/gorm"
 )
 
 // Task represents one task.
 type Task struct {
-	gorm.Model
+	ID          uint   `json:"id" gorm:"primaryKey,autoIncrement"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	TodoID      int

@@ -13,6 +13,6 @@ require (
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/zap v1.13.0
 	gorm.io/driver/postgres v1.1.0
-	gorm.io/driver/sqlite v1.1.4
+	gorm.io/driver/sqlite v1.1.4 // indirect
 	gorm.io/gorm v1.21.10
 )

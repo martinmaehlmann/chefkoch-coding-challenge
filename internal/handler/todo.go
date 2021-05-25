@@ -15,14 +15,14 @@ import (
 type TodoHandler interface {
 	FindAll() []*todo.Todo
 	Find(id string) (*todo.Todo, *todo.HandlerError)
-	Update(bodyData []byte) (*todo.Todo, *todo.HandlerError)
+	Update(bodyData []byte, id string) (*todo.Todo, *todo.HandlerError)
 	Create(bodyData []byte) (*todo.Todo, *todo.HandlerError)
 	Delete(id string) *todo.HandlerError
 }
 
 type todoHandler struct {
 	logger     *zap.Logger
-	repository *repository.TodoRepository
+	repository repository.TodoRepository
 }
 
 // FindAll returns all available Todos, or an empty slice, if none are available.
@@ -44,11 +44,18 @@ func (s *todoHandler) Find(id string) (*todo.Todo, *todo.HandlerError) {
 
 // Update updates the specified Todo, if it exists
 // returns nil and an error with http code http.StatusBadRequest, if it does not or the body data was malformed.
-func (s *todoHandler) Update(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
-	toDo, err := unmarshalTodo(bodyData)
-	if err != nil {
-		return nil, err
+func (s *todoHandler) Update(bodyData []byte, id string) (*todo.Todo, *todo.HandlerError) {
+	validID, err := strconv.Atoi(id)
+	if err != nil || validID < 0 {
+		return nil, todo.NewTodoInvalidIDError(id)
 	}
+
+	toDo, err2 := unmarshalTodo(bodyData)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	toDo.ID = uint(validID)
 
 	if !toDo.Valid() {
 		return nil, todo.NewInvalidTodo(toDo)
@@ -90,7 +97,7 @@ func (s *todoHandler) Delete(id string) *todo.HandlerError {
 
 	rowsAffected := s.repository.Delete(uint(validID))
 	if rowsAffected == 0 {
-		return todo.NewTodoHandlerError(fmt.Sprintf("Todo with id %d does not exist", validID), http.StatusBadRequest)
+		return todo.NewTodoInvalidIDError(id)
 	}
 
 	return nil
@@ -110,7 +117,7 @@ func unmarshalTodo(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
 }
 
 // NewTodoHandler returns a new TodoHandler.
-func NewTodoHandler(repository *repository.TodoRepository, logger *zap.Logger) TodoHandler {
+func NewTodoHandler(repository repository.TodoRepository, logger *zap.Logger) TodoHandler {
 	return &todoHandler{
 		logger:     logger,
 		repository: repository,

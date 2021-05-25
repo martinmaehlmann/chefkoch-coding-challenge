@@ -2,39 +2,14 @@ package todo
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"net/http"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestNewInvalidTodo(t *testing.T) {
-	todo := &Todo{
-		Model: gorm.Model{
-			ID:        1,
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-			DeletedAt: gorm.DeletedAt{},
-		},
-		Name:        "test",
-		Description: "test",
-		Tasks: []Task{
-			{
-				Model: gorm.Model{
-					ID:        1,
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-					DeletedAt: gorm.DeletedAt{},
-				},
-				Name:        "test",
-				Description: "test",
-				TodoID:      1,
-			},
-		},
-	}
 	type args struct {
-		toDo *Todo
+		toDo Todo
 	}
 	tests := []struct {
 		name string
@@ -43,16 +18,16 @@ func TestNewInvalidTodo(t *testing.T) {
 	}{
 		{
 			name: "test provider",
-			args: args{toDo: todo},
+			args: args{toDo: Todo{}},
 			want: &HandlerError{
-				Message:  fmt.Sprintf("todo %v is not valid", todo),
+				Message:  fmt.Sprintf("todo %v is not valid", &Todo{}),
 				HTTPCode: http.StatusBadRequest,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewInvalidTodo(tt.args.toDo); !reflect.DeepEqual(got, tt.want) {
+			if got := NewInvalidTodo(&tt.args.toDo); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewInvalidTodo() = %v, want %v", got, tt.want)
 			}
 		})

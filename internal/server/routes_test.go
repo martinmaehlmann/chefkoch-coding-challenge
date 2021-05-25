@@ -1,0 +1,364 @@
+package server
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/config"
+	handler_mock "gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/handler/mock"
+	"gitlab.com/m.maehlmann/chefkoch-coding-challenge/internal/todo"
+	"go.uber.org/zap"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+)
+
+func TestServer_createTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	requestBodyData, err := json.Marshal(defaultTestReturnTodo())
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Create(gomock.Eq(requestBodyData)).Return(defaultTestReturnTodo(), nil)
+
+	response, err := http.Post(fmt.Sprintf("%s/todos", ts.URL), "application/json", bytes.NewBuffer(requestBodyData))
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	var toDO *todo.Todo
+	err = json.Unmarshal(bodyData, &toDO)
+	assert.NoError(t, err)
+	assert.Equal(t, defaultTestReturnTodo(), toDO)
+}
+
+func TestServer_createTodoInvalidTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	invalidTodo := defaultTestReturnTodo()
+	invalidTodo.Name = ""
+
+	requestBodyData, err := json.Marshal(invalidTodo)
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Create(gomock.Eq(requestBodyData)).Return(nil, todo.NewInvalidTodo(invalidTodo))
+
+	response, err := http.Post(fmt.Sprintf("%s/todos", ts.URL), "application/json", bytes.NewBuffer(requestBodyData))
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal(fmt.Sprintf("todo %v is not valid", invalidTodo))
+
+	assert.Equal(t, message, bodyData)
+}
+
+func TestServer_deleteTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	handlerMock.EXPECT().Delete(gomock.Eq("1")).Return(nil)
+
+	// initialize http client
+	client := &http.Client{}
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, 1)
+
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal(fmt.Sprintf("deleted todo with id %s", "1"))
+
+	assert.Equal(t, message, bodyData)
+}
+
+func TestServer_deleteTodoInvalidID(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	handlerMock.EXPECT().Delete(gomock.Eq("-1")).Return(todo.NewTodoInvalidIDError("-1"))
+
+	// initialize http client
+	client := &http.Client{}
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, -1)
+
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal(fmt.Sprintf("%s is not a valid id. IDs are positive integers", "-1"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, message, bodyData)
+}
+
+func TestServer_findAllTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	handlerMock.EXPECT().FindAll().Return([]*todo.Todo{defaultTestReturnTodo()})
+
+	response, err := http.Get(fmt.Sprintf("%s/todos", ts.URL))
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	var toDO []*todo.Todo
+	err = json.Unmarshal(bodyData, &toDO)
+	assert.NoError(t, err)
+	assert.Equal(t, []*todo.Todo{defaultTestReturnTodo()}, toDO)
+}
+
+func TestServer_findTodoNoError(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	handlerMock.EXPECT().Find(gomock.Eq("1")).Return(defaultTestReturnTodo(), nil)
+
+	response, err := http.Get(fmt.Sprintf("%s/todos/%s", ts.URL, "1"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	var toDo *todo.Todo
+	err = json.Unmarshal(bodyData, &toDo)
+	assert.NoError(t, err)
+	expected := defaultTestReturnTodo()
+	assert.Equal(t, expected, toDo)
+}
+
+func TestServer_findTodoInvalidID(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	handlerMock.EXPECT().Find(gomock.Eq("-1")).Return(nil, todo.NewTodoInvalidIDError("-1"))
+
+	response, err := http.Get(fmt.Sprintf("%s/todos/%s", ts.URL, "-1"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal("-1 is not a valid id. IDs are positive integers")
+	assert.NoError(t, err)
+
+	assert.Equal(t, message, bodyData)
+}
+
+func TestServer_updateTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	// initialize http client
+	client := &http.Client{}
+
+	bodyData, err := json.Marshal(defaultTestReturnTodo())
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Update(gomock.Eq(bodyData), gomock.Eq("1")).Return(defaultTestReturnTodo(), nil)
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, 1)
+
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(bodyData))
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	bodyData, err = ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	var toDo *todo.Todo
+	err = json.Unmarshal(bodyData, &toDo)
+	assert.NoError(t, err)
+	expected := defaultTestReturnTodo()
+	assert.Equal(t, expected, toDo)
+}
+
+func TestServer_updateTodoInvalidID(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	// initialize http client
+	client := &http.Client{}
+
+	bodyData, err := json.Marshal(defaultTestReturnTodo())
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Update(gomock.Eq(bodyData), gomock.Eq("-1")).Return(nil, todo.NewTodoInvalidIDError("-1"))
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, -1)
+
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(bodyData))
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err = ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "\"-1 is not a valid id. IDs are positive integers\"", string(bodyData))
+}
+
+func TestServer_updateTodoMalformedBody(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	// initialize http client
+	client := &http.Client{}
+
+	requestBodyData, err := json.Marshal("invalid todo data")
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Update(gomock.Eq(requestBodyData), gomock.Eq("1")).Return(
+		nil, todo.NewTodoHandlerError(fmt.Sprintf("body data was malformed %s", string(requestBodyData)), http.StatusBadRequest))
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, 1)
+
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBodyData))
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err := ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal(fmt.Sprintf("body data was malformed %s", string(requestBodyData)))
+	assert.NoError(t, err)
+
+	assert.Equal(t, message, bodyData)
+}
+
+func TestServer_updateTodoInvalidTodo(t *testing.T) {
+	ctrl, ts, handlerMock := newTestServer(t)
+	defer cleanup(ctrl, ts)
+
+	// initialize http client
+	client := &http.Client{}
+
+	toDo := defaultTestReturnTodo()
+	toDo.Name = ""
+
+	bodyData, err := json.Marshal(toDo)
+	assert.NoError(t, err)
+
+	handlerMock.EXPECT().Update(gomock.Eq(bodyData), gomock.Eq("1")).Return(nil, todo.NewInvalidTodo(toDo))
+
+	url := fmt.Sprintf("%s/todos/%d", ts.URL, 1)
+
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(bodyData))
+	assert.NoError(t, err)
+
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	response, err := client.Do(request)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+
+	bodyData, err = ioutil.ReadAll(response.Body)
+	assert.NoError(t, err)
+
+	message, err := json.Marshal(todo.NewInvalidTodo(toDo).Message)
+	assert.NoError(t, err)
+
+	assert.Equal(t, message, bodyData)
+}
+
+func newTestServer(t *testing.T) (*gomock.Controller, *httptest.Server, *handler_mock.MockTodoHandler) {
+	ctrl := gomock.NewController(t)
+	handlerMock := handler_mock.NewMockTodoHandler(ctrl)
+	logger, _ := zap.NewProduction()
+	registry := config.NewRegistry(&config.GinConfig{Port: randomPort()}, nil, logger)
+	server := NewServer(registry, handlerMock, logger)
+	server.addRoutes()
+	ts := httptest.NewServer(server.engine)
+
+	return ctrl, ts, handlerMock
+}
+
+func cleanup(ctrl *gomock.Controller, ts *httptest.Server) {
+	ts.Close()
+	ctrl.Finish()
+}
+
+func randomPort() int {
+	rand.Seed(time.Now().Unix())
+
+	//Generate a random number x where x is in range 5<=x<=20
+	rangeLower := 8000
+	rangeUpper := 8999
+
+	return rangeLower + rand.Intn(rangeUpper-rangeLower+1)
+}
+
+func defaultTestReturnTodo() *todo.Todo {
+	tasks := make([]todo.Task, 2)
+	tasks[0] = todo.Task{
+		ID:          0,
+		Name:        "test1",
+		Description: "test1",
+		TodoID:      0,
+	}
+	tasks[1] = todo.Task{
+		ID:          0,
+		Name:        "test2",
+		Description: "test2",
+		TodoID:      0,
+	}
+	return &todo.Todo{
+		ID:          0,
+		Name:        "test",
+		Description: "test",
+		Tasks:       tasks,
+	}
+}

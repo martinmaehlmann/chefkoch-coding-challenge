@@ -1,14 +1,12 @@
 package todo
 
 import (
-	"gorm.io/gorm"
 	"testing"
-	"time"
 )
 
 func TestTask_Valid(t1 *testing.T) {
 	type fields struct {
-		Model       gorm.Model
+		ID          uint
 		Name        string
 		Description string
 		TodoID      int
@@ -21,12 +19,7 @@ func TestTask_Valid(t1 *testing.T) {
 		{
 			name: "test valid task",
 			fields: fields{
-				Model: gorm.Model{
-					ID:        1,
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-					DeletedAt: gorm.DeletedAt{},
-				},
+				ID:          1,
 				Name:        "test",
 				Description: "test",
 				TodoID:      1,
@@ -36,12 +29,7 @@ func TestTask_Valid(t1 *testing.T) {
 		{
 			name: "test invalid task",
 			fields: fields{
-				Model: gorm.Model{
-					ID:        1,
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-					DeletedAt: gorm.DeletedAt{},
-				},
+				ID:          1,
 				Name:        "",
 				Description: "test",
 				TodoID:      1,
@@ -52,7 +40,7 @@ func TestTask_Valid(t1 *testing.T) {
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
 			t := &Task{
-				Model:       tt.fields.Model,
+				ID:          tt.fields.ID,
 				Name:        tt.fields.Name,
 				Description: tt.fields.Description,
 				TodoID:      tt.fields.TodoID,

@@ -43,12 +43,17 @@ func (s *Server) createTodo(c *gin.Context) {
 }
 
 func (s *Server) updateTodo(c *gin.Context) {
+	id := c.Param("id")
+
 	bodyData, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("could not read body data: %v", err))
+		c.JSON(http.StatusInternalServerError, err.Error())
+
+		return
 	}
 
-	result, serviceError := s.todoHandler.Update(bodyData)
+	result, serviceError := s.todoHandler.Update(bodyData, id)
 	if serviceError != nil {
 		c.JSON(serviceError.HTTPCode, serviceError.Message)
 
