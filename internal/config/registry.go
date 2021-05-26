@@ -10,12 +10,17 @@ import (
 
 // PrettyStringer interface that shall return a pretty formatted representation of a struct. Equivalent to Stringer.
 type PrettyStringer interface {
+
+	// PrettyString returns a pretty formatted JSON representation of the struct.
 	PrettyString(indentation string) (string, error)
 }
 
 // Dialector interface to return a gorm.Dialector.
 type Dialector interface {
+	// DSN returns the dsn to connect against the database.
 	DSN() string
+
+	// Dialector returns a gorm postgres dialector.
 	Dialector() gorm.Dialector
 }
 

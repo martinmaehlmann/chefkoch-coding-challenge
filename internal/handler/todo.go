@@ -13,10 +13,24 @@ import (
 
 // TodoHandler handles the retrival and persisting of Todos.
 type TodoHandler interface {
+	// FindAll returns all available Todos, or an empty slice, if none are available.
 	FindAll() []*todo.Todo
+
+	// Find returns a Todo by its id, if it exists.
+	// Else returns a nil object
+	// If the id is a non valid positive integer, returns an error with http code http.StatusBadRequest.
 	Find(id string) (*todo.Todo, *todo.HandlerError)
+
+	// Update updates the specified Todo, if it exists
+	// returns nil and an error with http code http.StatusBadRequest, if it does not or the body data was malformed.
 	Update(bodyData []byte, id string) (*todo.Todo, *todo.HandlerError)
+
+	// Create creates the specified Todo and returns it with the updated id
+	// If the specified Todo has an id assigned, a http.StatusBadRequest error will be returned.
 	Create(bodyData []byte) (*todo.Todo, *todo.HandlerError)
+
+	// Delete soft deletes the specified Todo cascading
+	// if the Todo does not exist, a new TodoHandlerError is returned.
 	Delete(id string) *todo.HandlerError
 }
 
@@ -81,13 +95,12 @@ func (s *todoHandler) Create(bodyData []byte) (*todo.Todo, *todo.HandlerError) {
 		return nil, todo.NewInvalidTodo(toDo)
 	}
 
-	toDo.ID = 0
 	result := s.repository.Create(toDo)
 
 	return result, nil
 }
 
-// Delete deletes the specified Todo
+// Delete soft deletes the specified Todo cascading
 // if the Todo does not exist, a new TodoHandlerError is returned.
 func (s *todoHandler) Delete(id string) *todo.HandlerError {
 	validID, err := strconv.Atoi(id)

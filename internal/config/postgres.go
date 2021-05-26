@@ -21,21 +21,21 @@ const (
 	postgresPort     = "POSTGRES_PORT"
 )
 
-// PostgresConfig a struct conaining all the configuration needed to connect to a postgres database.
+// PostgresConfig a struct containing all the configuration needed to connect to a postgres database.
 type PostgresConfig struct {
-	Hostname string
-	Database string
-	SSLMode  string
-	TimeZone string
-	Username string
-	Password string
-	Port     int
+	hostname string
+	database string
+	sslMode  string
+	timeZone string
+	username string
+	password string
+	port     int
 }
 
-// DSN returns the dsn to connecto against the database.
+// DSN returns the dsn to connect against the database.
 func (p *PostgresConfig) DSN() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		p.Hostname, p.Username, p.Password, p.Database, p.Port, p.SSLMode, p.TimeZone)
+		p.hostname, p.username, p.password, p.database, p.port, p.sslMode, p.timeZone)
 }
 
 // Dialector returns a gorm postgres dialector.
@@ -56,12 +56,12 @@ func (p *PostgresConfig) PrettyString(indentation string) (string, error) {
 // NewPostgresConfig returns a new PostgresConfig.
 func NewPostgresConfig() *PostgresConfig {
 	return &PostgresConfig{
-		Hostname: viper.GetString(postgresHostname),
-		Database: viper.GetString(postgresDatabase),
-		SSLMode:  viper.GetString(postgresSslMode),
-		TimeZone: viper.GetString(postgresTimeZone),
-		Username: viper.GetString(postgresUsername),
-		Password: viper.GetString(postgresPassword),
-		Port:     viper.GetInt(postgresPort),
+		hostname: viper.GetString(postgresHostname),
+		database: viper.GetString(postgresDatabase),
+		sslMode:  viper.GetString(postgresSslMode),
+		timeZone: viper.GetString(postgresTimeZone),
+		username: viper.GetString(postgresUsername),
+		password: viper.GetString(postgresPassword),
+		port:     viper.GetInt(postgresPort),
 	}
 }

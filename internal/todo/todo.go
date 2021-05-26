@@ -35,7 +35,7 @@ func (t *Todo) BeforeDelete(tx *gorm.DB) (err error) {
 	return
 }
 
-// BeforeCreate cleans up all accidentally set ids.
+// BeforeCreate cleans up all accidentally set ids before a call to create.
 func (t *Todo) BeforeCreate(_ *gorm.DB) (err error) {
 	t.ID = 0
 

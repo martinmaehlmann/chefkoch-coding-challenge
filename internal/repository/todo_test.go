@@ -13,16 +13,19 @@ import (
 )
 
 func TestTodoRepository_AutoMigrate(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
 	defer cleanup(t, tempDir, ctrl, repository)
 
+	// call automigrate
 	err := repository.AutoMigrate()
 	assert.NoError(t, err)
 }
 
 func TestTodoRepository_Create(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
@@ -32,8 +35,12 @@ func TestTodoRepository_Create(t *testing.T) {
 	err := repository.AutoMigrate()
 	assert.NoError(t, err)
 
+	// get a Todo and alter its id
+	toDoToCreate := defaultTestReturnTodo()
+	toDoToCreate.ID = 10
+
 	// create the todo
-	repository.Create(defaultTestReturnTodo())
+	repository.Create(toDoToCreate)
 
 	// check if anything was created
 	todos := repository.FindAll()
@@ -53,6 +60,7 @@ func TestTodoRepository_Create(t *testing.T) {
 }
 
 func TestTodoRepository_SoftDelete(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
@@ -97,6 +105,7 @@ func TestTodoRepository_SoftDelete(t *testing.T) {
 }
 
 func TestTodoRepository_Find(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
@@ -115,6 +124,7 @@ func TestTodoRepository_Find(t *testing.T) {
 }
 
 func TestTodoRepository_FindAll(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
@@ -137,6 +147,7 @@ func TestTodoRepository_FindAll(t *testing.T) {
 }
 
 func TestTodoRepository_Update(t *testing.T) {
+	// get the test setup
 	ctrl := gomock.NewController(t)
 	tempDir, repository := newSQLliteTodoRepository(t, ctrl)
 
@@ -203,8 +214,9 @@ func cleanup(t *testing.T, dbFile *os.File, ctrl *gomock.Controller, repository 
 	ctrl.Finish()
 }
 
-// todoEqualsWithoutTimeFields checks if the todos are equal, if one irgnores fields like created_at.
-
+// todoEqualsWithoutTimeFields checks if the todos are equal, if one ignores fields like created_at.
+// These fields are not checked, as they are set by gorm and there is and should be little to no control over them
+// by the application.
 func todoEqualsWithoutTimeFields(t *testing.T, t1 *todo.Todo, t2 *todo.Todo) bool {
 	t.Helper()
 
@@ -231,6 +243,9 @@ func todoEqualsWithoutTimeFields(t *testing.T, t1 *todo.Todo, t2 *todo.Todo) boo
 	return true
 }
 
+// taskEqualsWithoutTimeFields checks if the tasks are equal, if one ignores fields like created_at.
+// These fields are not checked, as they are set by gorm and there is and should be little to no control over them
+// by the application.
 func taskEqualsWithoutTimeFields(t *testing.T, t1 *todo.Task, t2 *todo.Task) bool {
 	t.Helper()
 
@@ -249,7 +264,7 @@ func taskEqualsWithoutTimeFields(t *testing.T, t1 *todo.Task, t2 *todo.Task) boo
 	return true
 }
 
-// defaultTestReturnTodo conviniernce function to return a stuct to test with.
+// defaultTestReturnTodo convenience function to return a struct to test with.
 func defaultTestReturnTodo() *todo.Todo {
 	tasks := make([]*todo.Task, 2)
 	tasks[0] = &todo.Task{

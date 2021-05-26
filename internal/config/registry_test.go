@@ -8,10 +8,10 @@ import (
 )
 
 func TestNewRegistry(t *testing.T) {
-	setGinViperValues()
-	setPostgresViperValues()
+	setGinViperValues(t)
+	setPostgresViperValues(t)
 
-	defer ginViperCleanup()
+	defer ginViperCleanup(t)
 
 	actual := NewRegistry(NewGinConfig(), NewPostgresConfig(), nil)
 
@@ -19,13 +19,13 @@ func TestNewRegistry(t *testing.T) {
 		logger:    nil,
 		GinConfig: &GinConfig{Port: 8080},
 		PostgresConfig: &PostgresConfig{
-			Hostname: "test",
-			Database: "test",
-			SSLMode:  "test",
-			TimeZone: "test",
-			Username: "test",
-			Password: "test",
-			Port:     8080,
+			hostname: "test",
+			database: "test",
+			sslMode:  "test",
+			timeZone: "test",
+			username: "test",
+			password: "test",
+			port:     8080,
 		},
 	}
 
@@ -33,10 +33,10 @@ func TestNewRegistry(t *testing.T) {
 }
 
 func TestRegistry_PrettyString(t *testing.T) {
-	setGinViperValues()
-	setPostgresViperValues()
+	setGinViperValues(t)
+	setPostgresViperValues(t)
 
-	defer ginViperCleanup()
+	defer ginViperCleanup(t)
 
 	registry := NewRegistry(NewGinConfig(), NewPostgresConfig(), nil)
 

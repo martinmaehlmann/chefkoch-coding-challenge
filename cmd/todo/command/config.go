@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// serveCmd represents the serve command.
+// configCmd represents the config command.
 // nolint:gochecknoglobals // global variable needed by cobra
 var configCmd = &cobra.Command{
 	Use:   "config",
@@ -23,7 +23,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 
 	// local flags for this command only
-	serveCmd.Flags().StringP("ident", "i", "  ", "sets the indentation for the json pretty print")
+	serveCmd.Flags().StringP("indent", "i", "  ", "sets the indentation for the json pretty print")
 }
 
 // Config config prints the application configuration in a pretty json format.
@@ -37,10 +37,10 @@ func Config(_ *cobra.Command, _ []string) {
 	// initialize the configuration from viper
 	configRegistry := wire.InitializeConfig(logger)
 
-	// get the identation from the viper flag
-	indentation, err := serveCmd.Flags().GetString("ident")
+	// get the indentation from the viper flag
+	indentation, err := serveCmd.Flags().GetString("indent")
 	if err != nil {
-		logger.Fatal("required flag 'ident' not set. This should not be possible, as it has a default value")
+		logger.Fatal("required flag 'indent' not set. This should not be possible, as it has a default value")
 	}
 
 	// get the pretty printed json

@@ -10,13 +10,32 @@ import (
 
 // TodoRepository handles the operation of the Todo repository.
 type TodoRepository interface {
+	// Connect connects to the database or fails with a fatal error.
 	Connect()
+
+	// AutoMigrate Automatically migrate your schema, to keep your schema up to date.
+	// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes. It will change
+	// existing column’s type if its size, precision, nullable changed. It WON’T delete unused columns to protect your
+	// data.
 	AutoMigrate() error
+
+	// FindAll returns all found Todos.
 	FindAll() []*todo.Todo
+
+	// Find returns a Todo by id, nil if none were found.
 	Find(id uint) *todo.Todo
+
+	// Update updates an existing entry and returns the updated value, if it exists.
+	// If no entry exists, nil is returned.
 	Update(toDo *todo.Todo) *todo.Todo
+
+	// Create creates the given entry with a new ID and returns the new entry.
 	Create(toDo *todo.Todo) *todo.Todo
+
+	// Delete deletes the specified Todo and returns the rows affected.
 	Delete(id uint) int64
+
+	// Close closes the connection to the database.
 	Close()
 }
 

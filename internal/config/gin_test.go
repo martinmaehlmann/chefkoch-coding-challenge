@@ -9,9 +9,8 @@ import (
 )
 
 func TestGinConfig_PrettyString(t *testing.T) {
-	setGinViperValues()
-
-	defer ginViperCleanup()
+	defer ginViperCleanup(t)
+	setGinViperValues(t)
 
 	ginConfig := NewGinConfig()
 
@@ -25,9 +24,8 @@ func TestGinConfig_PrettyString(t *testing.T) {
 }
 
 func TestNewGinConfig(t *testing.T) {
-	setGinViperValues()
-
-	defer ginViperCleanup()
+	defer ginViperCleanup(t)
+	setGinViperValues(t)
 
 	actual := &GinConfig{Port: 8080}
 	expected := NewGinConfig()
@@ -35,10 +33,12 @@ func TestNewGinConfig(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func setGinViperValues() {
+func setGinViperValues(t *testing.T) {
+	t.Helper()
 	viper.Set(ginPort, 8080)
 }
 
-func ginViperCleanup() {
+func ginViperCleanup(t *testing.T) {
+	t.Helper()
 	viper.Reset()
 }

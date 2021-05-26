@@ -21,7 +21,8 @@ func TestNewInvalidTodo(t *testing.T) {
 			name: "test provider",
 			args: args{toDo: Todo{}},
 			want: &HandlerError{
-				Message:  fmt.Sprintf("todo %v is not valid", &Todo{}),
+				Message: fmt.Sprintf("todo %v is not valid. The field name is required for tasks and todos.",
+					&Todo{}),
 				HTTPCode: http.StatusBadRequest,
 			},
 		},

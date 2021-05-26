@@ -35,11 +35,11 @@ func NewTodoInvalidIDError(id string) *HandlerError {
 }
 
 // NewInvalidTodo returns an invalid todo error
-// Error Message: "todo %v is not valid""
+// Error Message: todo %v is not valid. The field name is required for tasks and todos.
 // HTTPCode: http.StatusBadRequest.
 func NewInvalidTodo(toDo *Todo) *HandlerError {
 	return &HandlerError{
-		Message:  fmt.Sprintf("todo %v is not valid", toDo),
+		Message:  fmt.Sprintf("todo %v is not valid. The field name is required for tasks and todos.", toDo),
 		HTTPCode: http.StatusBadRequest,
 	}
 }

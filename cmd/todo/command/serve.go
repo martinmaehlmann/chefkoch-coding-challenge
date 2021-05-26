@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// automigrate boolean flag weather to automigrate the database or not
 // nolint:gochecknoglobals // cobra syntax
 var automigrate bool
 
@@ -36,23 +37,28 @@ func init() {
 
 // Serve serves the gin-gonic server.
 func Serve(_ *cobra.Command, _ []string) {
+	// get a new logger instance
 	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("could not initialize logger: %v", err))
 	}
 
+	// initialize the repository and connect to it
 	todoRepository := repository.NewTodoRepository(config.NewPostgresConfig(), logger)
 	defer todoRepository.Close()
 	todoRepository.Connect()
 
+	// if automigration is needed, migrate / create the schema
 	if automigrate {
 		migrateDatabase(todoRepository)
 	}
 
+	// start the server and wait for connections
 	ginServer := wire.InitializeServer(todoRepository, logger)
 	ginServer.Run()
 }
 
+// migrateDatabase automigrates the repository.
 func migrateDatabase(todoRepository repository.TodoRepository) {
 	err := todoRepository.AutoMigrate()
 	if err != nil {
