@@ -431,7 +431,7 @@ func TestServer_updateTodoInvalidTodo(t *testing.T) {
 	assert.Equal(t, message, bodyData)
 }
 
-// newTestServer returns a new test server with all routes and configuration set
+// newTestServer returns a new test server with all routes and configuration set.
 func newTestServer(t *testing.T) (*gomock.Controller, *httptest.Server, *handler_mock.MockTodoHandler) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
@@ -445,7 +445,7 @@ func newTestServer(t *testing.T) (*gomock.Controller, *httptest.Server, *handler
 	return ctrl, ts, handlerMock
 }
 
-// cleanup cleans up all resources used by the test
+// cleanup cleans up all resources used by the test.
 func cleanup(t *testing.T, ctrl *gomock.Controller, ts *httptest.Server, response *http.Response) {
 	t.Helper()
 
@@ -458,7 +458,7 @@ func cleanup(t *testing.T, ctrl *gomock.Controller, ts *httptest.Server, respons
 	ctrl.Finish()
 }
 
-// randomPort returns a random port to use for the server in the range of including 8000 - 8999
+// randomPort returns a random port to use for the server in the range of including 8000 - 8999.
 func randomPort() int {
 	rand.Seed(time.Now().Unix())
 
